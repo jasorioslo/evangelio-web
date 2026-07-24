@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/CormorantGaramond-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/CormorantGaramond-Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/CormorantGaramond-Italic.ttf') format('truetype');
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-size: 18px;
+  }
+  body {
+    @apply bg-cream text-sepia font-sans antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+@layer components {
+  .container-prose {
+    @apply mx-auto max-w-3xl px-6 sm:px-8 lg:px-12;
+  }
+  .container-wide {
+    @apply mx-auto max-w-5xl px-6 sm:px-8 lg:px-12;
+  }
+  .lectura-texto {
+    @apply font-serif text-xl sm:text-2xl leading-loose text-brand-900;
+  }
+  .lectura-ref {
+    @apply font-serif text-xl sm:text-2xl font-bold text-brand-700 italic;
+  }
+  .badge-liturgia {
+    @apply inline-block text-sm uppercase tracking-wider bg-brand-100 text-brand-700 px-3 py-1 rounded-full font-sans font-medium;
+  }
+  .btn-primary {
+    @apply inline-flex items-center gap-2 bg-brand-600 text-cream px-6 py-3 rounded-lg font-serif text-xl hover:bg-brand-700 transition-colors shadow-sm;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 border border-brand-300 text-brand-700 px-6 py-3 rounded-lg font-serif text-xl hover:bg-brand-100 transition-colors;
+  }
+}
+
+/* Estilos del contenido evangelio (compartidos entre /hoy/ y /evangelio/[fecha]/) */
+.evangelio-prose {
+  @apply text-brand-900 leading-loose;
+  max-width: 42rem;
+  margin-inline: auto;
+}
+.evangelio-prose h2 {
+  @apply font-serif text-3xl sm:text-4xl text-brand-800 font-bold mt-16 mb-6 pb-3 border-b-2 border-brand-300;
+  letter-spacing: -0.01em;
+}
+.evangelio-prose h2:first-child {
+  @apply mt-4;
+}
+.evangelio-prose h2 + p {
+  @apply font-serif text-xl text-brand-600 italic mb-8;
+}
+.evangelio-prose blockquote {
+  @apply font-serif text-xl sm:text-2xl leading-loose text-brand-900 my-8 pl-6 border-l-4 border-brand-300;
+  font-feature-settings: "liga", "kern";
+}
+.evangelio-prose blockquote p {
+  @apply mb-5;
+}
+.evangelio-prose blockquote p:last-child {
+  @apply mb-0;
+}
+.evangelio-prose blockquote br + br {
+  display: block;
+  content: '';
+  margin-top: 1.5rem;
+}
+.evangelio-prose blockquote em,
+.evangelio-prose blockquote > em {
+  @apply block text-center text-brand-700 text-lg mt-6;
+  font-style: italic;
+}
+.evangelio-prose p {
+  @apply mb-6 font-serif text-xl sm:text-2xl leading-loose text-brand-900;
+}
+.evangelio-prose p:not(:first-child) {
+  @apply mt-0;
+}
+.evangelio-prose h2 + p + p strong,
+.evangelio-prose h2 + p strong {
+  @apply text-accent font-bold text-xl;
+}
+.evangelio-prose em {
+  @apply text-brand-700 italic;
+}
+.evangelio-prose strong {
+  @apply font-bold text-brand-800;
+}
+.evangelio-prose section + section,
+.evangelio-prose h2 + p + blockquote + h2 {
+  @apply mt-20;
+}
+.evangelio-prose figcaption {
+  @apply text-center text-sm text-brand-500 italic mt-3;
+}
+.evangelio-prose p img,
+.evangelio-prose img {
+  @apply rounded-xl shadow-lg my-8;
+  width: 100%;
+  height: auto;
+  border: 1px solid #e7d8c0;
+}
+.evangelio-prose p:has(img) {
+  @apply my-8 p-0;
+}

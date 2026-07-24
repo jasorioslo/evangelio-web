@@ -1,0 +1,234 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import WhatsAppCTA from '../components/WhatsAppCTA.astro';
+import { getCollection } from 'astro:content';
+import { formatFechaLegible, formatFechaCorta } from '../utils/liturgia';
+
+const title = 'Sobre Evangelio para Hoy — Proyecto de Evangelización Digital';
+const description = 'Evangelio para Hoy es un proyecto de evangelización digital con el Padre Jose Miguel: lecturas completas, reflexión pastoral, audio y video del evangelio de cada día. Conoce nuestra misión y cómo participamos en la evangelización católica digital.';
+const canonical = 'https://evangelioparahoy.com/sobre/';
+
+const entries = (await getCollection('evangelio')).sort((a, b) => (a.id > b.id ? -1 : 1));
+const ultimos7 = entries.slice(0, 7);
+const totalDias = entries.length;
+
+const orgJSON = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'Sobre Evangelio para Hoy',
+  url: canonical,
+  mainEntity: {
+    '@type': 'Organization',
+    name: 'Evangelio para Hoy',
+    url: 'https://evangelioparahoy.com/',
+    founder: {
+      '@type': 'Person',
+      name: 'Padre Jose Miguel',
+      jobTitle: 'Sacerdote Católico',
+      url: 'https://evangelioparahoy.com/autor/padre-jose-miguel/',
+    },
+  },
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  jsonLd={orgJSON}
+>
+  <article class="py-12">
+    <div class="container-prose">
+      <Breadcrumbs
+        items={[
+          { name: 'Inicio', href: '/' },
+          { name: 'Sobre', href: '/sobre/' },
+        ]}
+      />
+
+      <header class="text-center mb-12">
+        <h1 class="font-serif text-4xl sm:text-5xl text-brand-700 font-bold">
+          Sobre Evangelio para Hoy
+        </h1>
+        <p class="mt-4 font-serif text-xl text-brand-600 italic">
+          Un proyecto de evangelización digital con el Padre Jose Miguel
+        </p>
+      </header>
+
+      {/* MISION */}
+      <section class="space-y-6 font-serif text-xl leading-loose text-brand-900">
+        <p>
+          <strong>Evangelio para Hoy</strong> nació de un deseo simple: que la Palabra de Dios
+          llegue cada día a los hogares de México y Latinoamérica, de forma accesible, cercana
+          y profundamente católica. En un mundo donde todos miramos la pantalla del teléfono
+          cada mañana, queríamos que lo primero que se encontrara fuera el Evangelio del día.
+        </p>
+        <p>
+          Cada día publicamos las <strong>lecturas completas</strong> según el calendario
+          litúrgico católico: primera lectura, salmo responsorial, aclamación, evangelio y,
+          los domingos y solemnidades, segunda lectura. Acompañamos las lecturas con una
+          <strong>reflexión pastoral del Padre Jose Miguel</strong>, una
+          <strong>ilustración bíblica</strong> original, un <strong>audio narrado</strong>
+          de la reflexión y un <strong>video con karaoke palabra por palabra</strong> del
+          evangelio en nuestro canal de YouTube.
+        </p>
+        <p>
+          Nuestra misión es acompañar a los fieles católicos en su camino de fe cotidiano,
+          poniendo la Palabra de Dios al alcance de todos —en cualquier dispositivo, en
+          cualquier momento— para que nadie se quede sin su encuentro diario con Cristo.
+        </p>
+      </section>
+
+      {/* COMO LO HACEMOS */}
+      <section class="mt-16">
+        <h2 class="font-serif text-3xl text-brand-800 font-bold mb-2 pb-3 border-b-2 border-brand-300">
+          Cómo preparamos cada día
+        </h2>
+        <div class="mt-8 space-y-6 font-serif text-lg text-brand-800 leading-relaxed">
+          <div class="flex gap-4">
+            <span class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-lg">1</span>
+            <p>
+              <strong class="text-brand-700">Lecturas del día:</strong> Tomamos las lecturas
+              oficiales del calendario litúrgico católico romano, verificando la referencia
+              y el texto para cada fecha.
+            </p>
+          </div>
+          <div class="flex gap-4">
+            <span class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-lg">2</span>
+            <p>
+              <strong class="text-brand-700">Reflexión pastoral:</strong> El Padre Jose Miguel
+              prepara una reflexión que conecta el Evangelio con la vida cotidiana. Cada
+              texto es <strong>revisado y firmado personalmente</strong> por el Padre.
+            </p>
+          </div>
+          <div class="flex gap-4">
+            <span class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-lg">3</span>
+            <p>
+              <strong class="text-brand-700">Ilustración bíblica:</strong> Generamos una imagen
+              original para cada evangelio y primera lectura, optimizada en formato WebP para
+              cargar rápido en cualquier dispositivo.
+            </p>
+          </div>
+          <div class="flex gap-4">
+            <span class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-lg">4</span>
+            <p>
+              <strong class="text-brand-700">Audio narrado:</strong> La reflexión se graba en
+              audio con voz humana, disponible para escuchar online o descargar en MP3.
+            </p>
+          </div>
+          <div class="flex gap-4">
+            <span class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-lg">5</span>
+            <p>
+              <strong class="text-brand-700">Video karaoke:</strong> Producimos un video con el
+              texto del evangelio palabra por palabra, sincronizado para seguir la lectura
+              en YouTube.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* DONDE ENCONTRARNOS */}
+      <section class="mt-16">
+        <h2 class="font-serif text-3xl text-brand-800 font-bold mb-2 pb-3 border-b-2 border-brand-300">
+          Dónde encontrarnos
+        </h2>
+        <p class="mt-6 font-serif text-lg text-brand-700 leading-relaxed">
+          Puedes seguir el Evangelio de cada día a través de varios canales:
+        </p>
+        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-6 bg-brand-50 border border-brand-200 rounded-xl">
+            <h3 class="font-serif text-xl text-brand-800 font-bold mb-2">Este sitio web</h3>
+            <p class="text-brand-600">
+              Visita <a href="/hoy/" class="text-accent hover:underline font-bold">/hoy/</a>
+              cada día para leer las lecturas completas, escuchar el audio y ver el video.
+              También puedes navegar por el <a href="/calendario/" class="text-accent hover:underline font-bold">calendario</a>.
+            </p>
+          </div>
+          <div class="p-6 bg-brand-50 border border-brand-200 rounded-xl">
+            <h3 class="font-serif text-xl text-brand-800 font-bold mb-2">Canal de WhatsApp</h3>
+            <p class="text-brand-600">
+              Recibe el evangelio y la reflexión de cada día directamente en tu WhatsApp.
+              Únete a nuestro canal para no perder ni un día.
+            </p>
+          </div>
+          <div class="p-6 bg-brand-50 border border-brand-200 rounded-xl">
+            <h3 class="font-serif text-xl text-brand-800 font-bold mb-2">Canal de YouTube</h3>
+            <p class="text-brand-600">
+              Videos con karaoke palabra por palabra del evangelio, para contemplar la Palabra
+              mientras la lees.
+            </p>
+          </div>
+          <div class="p-6 bg-brand-50 border border-brand-200 rounded-xl">
+            <h3 class="font-serif text-xl text-brand-800 font-bold mb-2">Feed RSS</h3>
+            <p class="text-brand-600">
+              Suscríbete al <a href="/rss.xml" class="text-accent hover:underline font-bold">feed RSS</a>
+              para recibir cada nuevo evangelio en tu lector favorito.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ULTIMOS EVANGELIOS */}
+      <section class="mt-16">
+        <div class="flex items-baseline justify-between mb-6">
+          <h2 class="font-serif text-3xl text-brand-800 font-bold">Últimos evangelios publicados</h2>
+          <a href="/calendario/" class="text-brand-600 hover:text-accent font-serif text-lg">Ver todos →</a>
+        </div>
+        <ul class="space-y-3">
+          {ultimos7.map((entry) => (
+            <li>
+              <a
+                href={`/evangelio/${entry.slug}/`}
+                class="flex items-baseline gap-4 p-4 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors group"
+              >
+                <span class="font-serif text-lg text-brand-700 font-bold flex-shrink-0 tabular-nums">
+                  {formatFechaCorta(entry.slug)}
+                </span>
+                <span class="flex-1">
+                  <span class="text-brand-800 group-hover:text-accent transition-colors">
+                    {entry.data.titulo_dia || 'Evangelio del día'}
+                  </span>
+                  {entry.data.evangelio?.referencia && (
+                    <span class="block text-sm text-brand-500 italic mt-0.5">
+                      {entry.data.evangelio.referencia}
+                    </span>
+                  )}
+                </span>
+                <span class="text-brand-400 group-hover:text-accent transition-colors">→</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* CTA */}
+      <section class="mt-16">
+        <h2 class="font-serif text-3xl text-brand-800 font-bold text-center mb-8">Síguenos y únete</h2>
+        <div class="flex flex-wrap items-center justify-center gap-4">
+          <a
+            href="https://www.youtube.com/@evangelioparahoy7"
+            target="_blank"
+            rel="noopener"
+            class="btn-primary"
+          >
+            Canal de YouTube
+          </a>
+          <a
+            href="https://whatsapp.com/channel/0029Vb8gvlCInlqSAi9Wjo2U"
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg font-serif text-xl hover:bg-green-700 transition-colors shadow-sm"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/>
+            </svg>
+            Canal de WhatsApp
+          </a>
+        </div>
+        <div class="mt-8">
+          <WhatsAppCTA variant="banner" />
+        </div>
+      </section>
+    </div>
+  </article>
+</BaseLayout>

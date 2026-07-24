@@ -1,0 +1,135 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import WhatsAppCTA from '../components/WhatsAppCTA.astro';
+import { getCollection } from 'astro:content';
+import { MESES_ES, MESES_ES_CAPITAL, formatFechaCorta } from '../utils/liturgia';
+
+const entries = await getCollection('evangelio');
+
+const porMes = new Map<string, typeof entries>();
+for (const entry of entries) {
+  const mes = entry.slug.slice(0, 7);
+  if (!porMes.has(mes)) porMes.set(mes, []);
+  porMes.get(mes)!.push(entry);
+}
+const mesesOrdenados = Array.from(porMes.keys()).sort();
+
+function monthSlug(key: string): { year: string; month: string; label: string } {
+  const [year, mm] = key.split('-');
+  const mNum = parseInt(mm);
+  return {
+    year,
+    month: MESES_ES[mNum - 1],
+    label: `${MESES_ES_CAPITAL[mNum - 1]} ${year}`,
+  };
+}
+
+const title = 'Calendario del Evangelio — Todos los días publicados';
+const description = `Navega los ${entries.length} evangelios publicados por mes y fecha. Calendario litúrgico católico completo con lecturas, reflexión, audio y video del Padre Jose Miguel.`;
+const canonical = 'https://evangelioparahoy.com/calendario/';
+---
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+>
+  <section class="py-12">
+    <div class="container-wide">
+      <Breadcrumbs
+        items={[
+          { name: 'Inicio', href: '/' },
+          { name: 'Calendario', href: '/calendario/' },
+        ]}
+      />
+
+      {/* HEADER con stats */}
+      <div class="text-center mb-12">
+        <h1 class="font-serif text-4xl sm:text-5xl text-brand-700 font-bold">
+          Calendario del Evangelio
+        </h1>
+        <p class="mt-4 font-serif text-xl text-brand-600 italic">
+          Navega todos los evangelios por mes y fecha
+        </p>
+        <div class="mt-8 inline-flex items-center gap-8 bg-brand-50 border border-brand-200 rounded-2xl px-8 py-4">
+          <div class="text-center">
+            <p class="font-serif text-3xl text-brand-700 font-bold">{entries.length}</p>
+            <p class="text-xs text-brand-500 uppercase tracking-wider mt-1">Días publicados</p>
+          </div>
+          <div class="w-px h-12 bg-brand-200"></div>
+          <div class="text-center">
+            <p class="font-serif text-3xl text-brand-700 font-bold">{mesesOrdenados.length}</p>
+            <p class="text-xs text-brand-500 uppercase tracking-wider mt-1">Meses</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Grid de meses clickeables */}
+      <h2 class="font-serif text-2xl text-brand-800 font-bold mb-6 text-center sm:text-left">
+        Navegar por mes
+      </h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-16">
+        {mesesOrdenados.map((mes) => {
+          const diasDelMes = porMes.get(mes)!;
+          const info = monthSlug(mes);
+          return (
+            <a
+              href={`/calendario/${info.year}/${info.month}/`}
+              class="block p-6 bg-brand-50 hover:bg-brand-100 rounded-xl transition-colors text-center border border-brand-200 hover:border-brand-300 hover:shadow-md group"
+            >
+              <div class="font-serif text-xl text-brand-700 font-bold group-hover:text-accent transition-colors">{info.label}</div>
+              <div class="text-sm text-brand-500 mt-1">{diasDelMes.length} días</div>
+            </a>
+          );
+        })}
+      </div>
+
+      {/* Detalle por mes */}
+      <div class="space-y-12">
+        {mesesOrdenados.map((mes) => {
+          const diasDelMes = porMes.get(mes)!;
+          const info = monthSlug(mes);
+          return (
+            <section>
+              <h2 class="font-serif text-2xl sm:text-3xl text-brand-700 mb-4 border-b-2 border-brand-300 pb-2">
+                <a href={`/calendario/${info.year}/${info.month}/`} class="hover:text-accent transition-colors">
+                  {info.label}
+                </a>
+                <span class="text-sm text-brand-500 ml-2">({diasDelMes.length} días)</span>
+              </h2>
+              <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {diasDelMes.map((entry) => (
+                  <li>
+                    <a
+                      href={`/evangelio/${entry.slug}/`}
+                      class="flex items-baseline gap-3 p-3 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors group"
+                    >
+                      <span class="font-serif text-lg text-brand-700 font-bold flex-shrink-0 tabular-nums">
+                        {formatFechaCorta(entry.slug)}
+                      </span>
+                      <span class="flex-1 min-w-0">
+                        <span class="block text-sm text-brand-800 group-hover:text-accent transition-colors truncate">
+                          {entry.data.titulo_dia || 'Evangelio del día'}
+                        </span>
+                        {entry.data.evangelio?.referencia && (
+                          <span class="block text-xs text-brand-500 italic mt-0.5 truncate">
+                            {entry.data.evangelio.referencia}
+                          </span>
+                        )}
+                      </span>
+                      <span class="text-brand-400 group-hover:text-accent transition-colors flex-shrink-0">→</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
+
+      <div class="mt-16">
+        <WhatsAppCTA variant="banner" />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,40 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  loading?: 'eager' | 'lazy';
+  className?: string;
+}
+
+const {
+  src,
+  alt,
+  width = 1600,
+  height = 900,
+  loading = 'lazy',
+  className = '',
+} = Astro.props;
+
+const baseName = src.replace(/\.webp$/, '');
+const src400 = `${baseName}-400.webp`;
+const src800 = `${baseName}-800.webp`;
+const srcFull = `${baseName}-1600.webp`;
+---
+<figure class={`overflow-hidden rounded-xl shadow-xl ${className}`}>
+  <picture>
+    <source media="(max-width: 500px)" srcset={src400} type="image/webp" />
+    <source media="(max-width: 900px)" srcset={src800} type="image/webp" />
+    <source srcset={srcFull} type="image/webp" />
+    <img
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      loading={loading}
+      decoding="async"
+      class="w-full h-auto"
+    />
+  </picture>
+</figure>

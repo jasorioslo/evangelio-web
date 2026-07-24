@@ -1,0 +1,26 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+dev-server.log
+dev.err
+dev.log
+
+# environment variables
+.env
+.env.production
+
+# macOS-specific files
+.DS_Store
+
+# editor
+.vscode/
+.idea/
+
+# audio files (too large for git, deploy separately)
+public/audio/

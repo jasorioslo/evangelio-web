@@ -1,0 +1,141 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import WhatsAppCTA from '../../components/WhatsAppCTA.astro';
+import { getCollection } from 'astro:content';
+import { formatFechaLegible, formatFechaCorta } from '../../utils/liturgia';
+
+export async function getStaticPaths() {
+  const autores = await getCollection('autor');
+  const evangelios = await getCollection('evangelio');
+
+  return autores.map((entry) => ({
+    params: { slug: entry.slug },
+    props: {
+      entry,
+      reflexiones: evangelios
+        .filter((e) => e.data.autor === entry.slug)
+        .sort((a, b) => (a.id > b.id ? -1 : 1)),
+    },
+  }));
+}
+
+const { entry, reflexiones } = Astro.props;
+const { data, body } = entry;
+
+const title = `${data.name} — Evangelio para Hoy`;
+const description = data.bio_corta;
+const canonical = `https://evangelioparahoy.com/autor/${entry.slug}/`;
+
+const personJSON = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: data.name,
+  jobTitle: data.rol,
+  description: data.bio_corta,
+  image: new URL(data.avatar, 'https://evangelioparahoy.com/').href,
+  url: canonical,
+  knowsAbout: ['Evangelio', 'Reflexión católica', 'Homilía', 'Palabra de Dios'],
+  worksFor: {
+    '@type': 'Organization',
+    name: 'Evangelio para Hoy',
+    url: 'https://evangelioparahoy.com/',
+  },
+  ...(data.redes?.youtube
+    ? { sameAs: [data.redes.youtube] }
+    : {}),
+};
+
+const collectionPageJSON = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: `Reflexiones de ${data.name}`,
+  url: canonical,
+  hasPart: reflexiones.slice(0, 20).map((r) => ({
+    '@type': 'Article',
+    headline: r.data.title,
+    datePublished: r.data.fecha,
+    url: `https://evangelioparahoy.com/evangelio/${r.slug}/`,
+  })),
+};
+
+const allJSON = [personJSON, collectionPageJSON];
+---
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  ogImage={data.avatar}
+  jsonLd={allJSON}
+>
+  <article class="py-12">
+    <div class="container-prose">
+      <Breadcrumbs
+        items={[
+          { name: 'Inicio', href: '/' },
+          { name: 'Autor', href: '/autor/' },
+          { name: data.name, href: `/autor/${entry.slug}/` },
+        ]}
+      />
+
+      <header class="text-center">
+        <img
+          src={data.avatar}
+          alt={`Retrato del ${data.name}`}
+          width={200}
+          height={200}
+          loading="eager"
+          class="mx-auto rounded-full shadow-lg ring-2 ring-brand-300"
+        />
+        <h1 class="mt-6 font-serif text-4xl sm:text-5xl text-brand-700 font-bold">{data.name}</h1>
+        <p class="mt-2 badge-liturgia">{data.rol}</p>
+      </header>
+
+      <div class="mt-10 font-serif text-xl leading-relaxed text-brand-900 space-y-6" set:html={body} />
+
+      {data.redes?.youtube && (
+        <div class="mt-12 text-center">
+          <a href={data.redes.youtube} target="_blank" rel="noopener" class="btn-primary">
+            Canal de YouTube
+          </a>
+        </div>
+      )}
+
+      <div class="mt-8">
+        <WhatsAppCTA variant="banner" />
+      </div>
+
+      <section class="mt-16">
+        <h2 class="font-serif text-3xl text-brand-800 font-bold mb-6 pb-3 border-b-2 border-brand-300">
+          Reflexiones del Padre Jose Miguel
+        </h2>
+        <p class="text-brand-600 mb-6">{reflexiones.length} reflexiones publicadas</p>
+        <ul class="space-y-3">
+          {reflexiones.map((r) => (
+            <li>
+              <a
+                href={`/evangelio/${r.slug}/`}
+                class="flex items-baseline gap-4 p-4 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors group"
+              >
+                <span class="font-serif text-lg text-brand-700 font-bold flex-shrink-0 tabular-nums">
+                  {formatFechaCorta(r.slug)}
+                </span>
+                <span class="flex-1">
+                  <span class="text-brand-800 group-hover:text-accent transition-colors">
+                    {r.data.titulo_dia || 'Evangelio del día'}
+                  </span>
+                  {r.data.evangelio?.referencia && (
+                    <span class="block text-sm text-brand-500 italic mt-0.5">
+                      {r.data.evangelio.referencia}
+                    </span>
+                  )}
+                </span>
+                <span class="text-brand-400 group-hover:text-accent transition-colors">→</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  </article>
+</BaseLayout>

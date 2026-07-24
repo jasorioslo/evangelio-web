@@ -1,0 +1,189 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import ShareButtons from '../components/ShareButtons.astro';
+import AudioPlayer from '../components/AudioPlayer.astro';
+import YouTubeEmbed from '../components/YouTubeEmbed.astro';
+import WhatsAppCTA from '../components/WhatsAppCTA.astro';
+import { getCollection } from 'astro:content';
+import { formatFechaLegible, formatFechaLegibleDe } from '../utils/liturgia';
+
+const hoy = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+const hoyStr = hoy.toISOString().split('T')[0];
+
+const entries = (await getCollection('evangelio')).sort((a, b) =>
+  a.id < b.id ? -1 : 1
+);
+
+const entry = entries.find((e) => e.slug === hoyStr) ?? entries[entries.length - 1];
+
+if (!entry) {
+  return Astro.redirect('/?sin-contenido=1');
+}
+
+const { data } = entry;
+const { Content } = await entry.render();
+
+const iso = data.fecha;
+const fechaLegible = formatFechaLegible(iso);
+
+const titleSEO = `Evangelio de hoy — ${fechaLegible} | Evangelio para Hoy`;
+const canonical = 'https://evangelioparahoy.com/hoy/';
+const description = `Lecturas, salmo y evangelio de hoy ${fechaLegible}. Reflexión del Padre Jose Miguel con audio y video.`;
+
+const breadcrumbJSON = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://evangelioparahoy.com/' },
+    { '@type': 'ListItem', position: 2, name: 'Evangelio de hoy', item: canonical },
+  ],
+};
+
+const articleJSON = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: titleSEO,
+  description,
+  datePublished: iso,
+  dateModified: hoyStr,
+  image: data.imagen ? new URL(data.imagen, 'https://evangelioparahoy.com/').href : undefined,
+  author: {
+    '@type': 'Person',
+    name: 'Padre Jose Miguel',
+    jobTitle: 'Sacerdote Católico',
+    url: 'https://evangelioparahoy.com/autor/padre-jose-miguel/',
+    image: 'https://evangelioparahoy.com/img/autor/padre-jose-miguel.webp',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Evangelio para Hoy',
+    url: 'https://evangelioparahoy.com/',
+    logo: { '@type': 'ImageObject', url: 'https://evangelioparahoy.com/favicon.svg' },
+  },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+};
+
+const audioJSON = data.audio_reflexion
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'AudioObject',
+      contentUrl: new URL(data.audio_reflexion, 'https://evangelioparahoy.com/').href,
+      encodingFormat: 'audio/mpeg',
+    }
+  : null;
+
+const allJSON = [
+  breadcrumbJSON,
+  articleJSON,
+  ...(audioJSON ? [audioJSON] : []),
+];
+---
+<BaseLayout
+  title={titleSEO}
+  description={description}
+  canonical={canonical}
+  keywords={data.keywords ?? []}
+  ogImage={data.imagen ?? undefined}
+  jsonLd={allJSON}
+>
+  <article class="py-8 sm:py-16">
+    <div class="container-prose">
+      <Breadcrumbs
+        items={[
+          { name: 'Inicio', href: '/' },
+          { name: 'Evangelio de hoy', href: '/hoy/' },
+        ]}
+      />
+
+      <header class="mb-10">
+        <h1 class="font-serif text-4xl sm:text-6xl text-brand-900 font-bold leading-tight tracking-tight">
+          Evangelio de hoy
+        </h1>
+        <p class="mt-3 font-serif text-2xl sm:text-3xl text-brand-600 italic">
+          {fechaLegible}
+        </p>
+        {data.titulo_dia && (
+          <p class="mt-4">
+            <span class="badge-liturgia">{data.titulo_dia}</span>
+          </p>
+        )}
+      </header>
+    </div>
+
+    {data.imagen && (
+      <figure class="container-prose mb-16">
+        <img
+          src={data.imagen}
+          alt={`Evangelio de hoy ${fechaLegible} — ${data.evangelio.referencia} (ilustración)`}
+          width={1600}
+          height={900}
+          loading="eager"
+          class="w-full rounded-xl shadow-xl"
+        />
+        <figcaption class="text-center text-sm text-brand-500 mt-3 italic">
+          {data.evangelio.referencia}
+        </figcaption>
+      </figure>
+    )}
+
+    <div class="evangelio-prose">
+      <Content />
+    </div>
+
+    {data.audio_reflexion && (
+      <div id="audio-reflexion-hidden" class="hidden">
+        <AudioPlayer
+          src={data.audio_reflexion}
+          duration={data.audio_reflexion_duracion}
+          title={`Reflexión del evangelio de hoy ${fechaLegible}`}
+        />
+      </div>
+    )}
+
+    {data.audio_reflexion && (
+      <script is:inline>
+        (function() {
+          var container = document.getElementById('audio-reflexion-hidden');
+          var headings = document.querySelectorAll('.evangelio-prose h2');
+          for (var i = 0; i < headings.length; i++) {
+            if (headings[i].textContent.includes('Reflexión del Padre Jose Miguel')) {
+              var target = headings[i];
+              var audioBox = container.querySelector('.audio-player-box');
+              if (audioBox) {
+                audioBox.classList.remove('hidden');
+                container.classList.remove('hidden');
+                target.parentNode.insertBefore(audioBox, target.nextSibling);
+              }
+              break;
+            }
+          }
+        })();
+      </script>
+    )}
+
+    {data.youtube_id && (
+      <section class="container-prose mt-16">
+        <h2 class="font-serif text-3xl text-brand-800 font-bold mb-6">Video del evangelio</h2>
+        <YouTubeEmbed youtubeId={data.youtube_id} title={`Evangelio de hoy ${fechaLegible}`} />
+      </section>
+    )}
+
+    <section class="container-prose mt-16">
+      <WhatsAppCTA variant="banner" />
+    </section>
+
+    <section class="container-prose mt-10">
+      <ShareButtons url={canonical} title={titleSEO} />
+    </section>
+
+    <nav class="container-prose mt-20 pt-8 border-t border-brand-200" aria-label="Archivo por fecha">
+      <p class="text-brand-600 mb-4">
+        Este contenido también está disponible en su página de archivo permanente:
+      </p>
+      <a href={`/evangelio/${entry.slug}/`} class="btn-ghost text-base" style="background:white">
+        Ver evangelio del {formatFechaLegibleDe(iso)} →
+      </a>
+    </nav>
+  </article>
+</BaseLayout>

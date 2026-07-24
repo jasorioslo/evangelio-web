@@ -1,0 +1,225 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ShareButtons from '../../components/ShareButtons.astro';
+import AudioPlayer from '../../components/AudioPlayer.astro';
+import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
+import WhatsAppCTA from '../../components/WhatsAppCTA.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import { formatFechaLegible, formatFechaLegibleDe, formatFechaCorta } from '../../utils/liturgia';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('evangelio');
+  return entries
+    .sort((a, b) => (a.id < b.id ? -1 : 1))
+    .map((entry, idx, arr) => ({
+      params: { fecha: entry.slug },
+      props: {
+        entry,
+        anterior: arr[idx - 1] ?? null,
+        siguiente: arr[idx + 1] ?? null,
+      },
+    }));
+}
+
+type Props = {
+  entry: CollectionEntry<'evangelio'>;
+  anterior: CollectionEntry<'evangelio'> | null;
+  siguiente: CollectionEntry<'evangelio'> | null;
+};
+
+const { entry, anterior, siguiente } = Astro.props;
+const { data } = entry;
+const { Content } = await entry.render();
+
+const iso = data.fecha;
+const fechaLegible = formatFechaLegible(iso);
+const fechaLegibleDe = formatFechaLegibleDe(iso);
+
+const canonical = `https://evangelioparahoy.com/evangelio/${iso}/`;
+
+const breadcrumbJSON = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://evangelioparahoy.com/' },
+    { '@type': 'ListItem', position: 2, name: 'Evangelio', item: 'https://evangelioparahoy.com/evangelio/' },
+    { '@type': 'ListItem', position: 3, name: fechaLegible, item: canonical },
+  ],
+};
+
+const articleJSON = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: data.title,
+  description: data.description,
+  datePublished: iso,
+  dateModified: iso,
+  image: data.imagen ? new URL(data.imagen, 'https://evangelioparahoy.com/').href : undefined,
+  author: {
+    '@type': 'Person',
+    name: 'Padre Jose Miguel',
+    jobTitle: 'Sacerdote Católico',
+    url: 'https://evangelioparahoy.com/autor/padre-jose-miguel/',
+    image: 'https://evangelioparahoy.com/img/autor/padre-jose-miguel.webp',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Evangelio para Hoy',
+    url: 'https://evangelioparahoy.com/',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://evangelioparahoy.com/favicon.svg',
+    },
+  },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+  keywords: (data.keywords ?? []).join(', '),
+};
+
+const audioJSON = data.audio_reflexion
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'AudioObject',
+      contentUrl: new URL(data.audio_reflexion, 'https://evangelioparahoy.com/').href,
+      encodingFormat: 'audio/mpeg',
+      ...(data.audio_reflexion_duracion ? { duration: data.audio_reflexion_duracion } : {}),
+    }
+  : null;
+
+const videoJSON = data.youtube_id
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'VideoObject',
+      contentUrl: `https://www.youtube.com/watch?v=${data.youtube_id}`,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${data.youtube_id}`,
+      thumbnailUrl: `https://i.ytimg.com/vi/${data.youtube_id}/hqdefault.jpg`,
+      uploadDate: iso,
+      name: data.title,
+      description: data.description,
+    }
+  : null;
+
+const allJSON = [
+  breadcrumbJSON,
+  articleJSON,
+  ...(audioJSON ? [audioJSON] : []),
+  ...(videoJSON ? [videoJSON] : []),
+];
+---
+<BaseLayout
+  title={data.title}
+  description={data.description}
+  canonical={canonical}
+  keywords={data.keywords ?? []}
+  ogImage={data.imagen ?? undefined}
+  jsonLd={allJSON}
+>
+  <article class="py-8 sm:py-16">
+    <div class="container-prose">
+      <Breadcrumbs
+        items={[
+          { name: 'Inicio', href: '/' },
+          { name: 'Evangelio', href: '/calendario/' },
+          { name: fechaLegible, href: `/evangelio/${iso}/` },
+        ]}
+      />
+
+      <header class="mb-10">
+        <h1 class="font-serif text-4xl sm:text-6xl text-brand-900 font-bold leading-tight tracking-tight">
+          Evangelio del {fechaLegibleDe}
+        </h1>
+        {data.titulo_dia && (
+          <p class="mt-4">
+            <span class="badge-liturgia">{data.titulo_dia}</span>
+          </p>
+        )}
+      </header>
+    </div>
+
+    {data.imagen && (
+      <figure class="container-prose mb-16">
+        <img
+          src={data.imagen}
+          alt={`Evangelio del ${fechaLegible} — ${data.evangelio.referencia} (ilustración)`}
+          width={1600}
+          height={900}
+          loading="eager"
+          class="w-full rounded-xl shadow-xl"
+        />
+        <figcaption class="text-center text-sm text-brand-500 mt-3 italic">
+          {data.evangelio.referencia}
+        </figcaption>
+      </figure>
+    )}
+
+    <div class="evangelio-prose">
+      <Content />
+    </div>
+
+    {data.audio_reflexion && (
+      <div id="audio-reflexion-hidden" class="hidden">
+        <AudioPlayer
+          src={data.audio_reflexion}
+          duration={data.audio_reflexion_duracion}
+          title={`Reflexión del evangelio del ${fechaLegible}`}
+        />
+      </div>
+    )}
+
+    {data.audio_reflexion && (
+      <script is:inline>
+        (function() {
+          var container = document.getElementById('audio-reflexion-hidden');
+          var headings = document.querySelectorAll('.evangelio-prose h2');
+          for (var i = 0; i < headings.length; i++) {
+            if (headings[i].textContent.includes('Reflexión del Padre Jose Miguel')) {
+              var target = headings[i];
+              var audioBox = container.querySelector('.audio-player-box');
+              if (audioBox) {
+                audioBox.classList.remove('hidden');
+                container.classList.remove('hidden');
+                target.parentNode.insertBefore(audioBox, target.nextSibling);
+              }
+              break;
+            }
+          }
+        })();
+      </script>
+    )}
+
+    {data.youtube_id && (
+      <section class="container-prose mt-16">
+        <h2 class="font-serif text-3xl text-brand-800 font-bold mb-6">Video del evangelio</h2>
+        <YouTubeEmbed youtubeId={data.youtube_id} title={`Evangelio del ${fechaLegible}`} />
+      </section>
+    )}
+
+    {/* WhatsApp CTA */}
+    <section class="container-prose mt-16">
+      <WhatsAppCTA variant="banner" />
+    </section>
+
+    {/* Share buttons bottom */}
+    <section class="container-prose mt-10">
+      <ShareButtons url={canonical} title={data.title} />
+    </section>
+
+    {/* Nav anterior / siguiente */}
+    <nav class="container-prose mt-20 pt-8 border-t border-brand-200 grid grid-cols-2 gap-4" aria-label="Días anteriores y siguientes">
+      {anterior ? (
+        <a href={`/evangelio/${anterior.slug}/`} class="btn-ghost text-base" style="background:white">
+          ← {formatFechaCorta(anterior.slug)}
+        </a>
+      ) : (
+        <span class="text-brand-400 italic text-base">Sin día anterior</span>
+      )}
+      {siguiente ? (
+        <a href={`/evangelio/${siguiente.slug}/`} class="btn-ghost text-base text-right" style="background:white">
+          {formatFechaCorta(siguiente.slug)} →
+        </a>
+      ) : (
+        <span class="text-brand-400 italic text-right text-base">Sin día siguiente</span>
+      )}
+    </nav>
+  </article>
+</BaseLayout>

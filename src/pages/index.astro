@@ -1,0 +1,257 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import WhatsAppCTA from '../components/WhatsAppCTA.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { getCollection } from 'astro:content';
+import { formatFechaLegible, formatFechaCorta, getDiaSemana } from '../utils/liturgia';
+
+const title = 'Evangelio para Hoy — Con el Padre Jose Miguel';
+const description = 'El evangelio de cada día, con reflexión pastoral, audio narrado e ilustraciones bíblicas. Lecturas católicas completas: primera lectura, salmo responsorial, evangelio y reflexión del Padre Jose Miguel.';
+
+const entries = (await getCollection('evangelio')).sort((a, b) => (a.id > b.id ? -1 : 1));
+const latest = entries[0];
+const ultimos5 = entries.slice(0, 5);
+
+const hoy = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+const hoyStr = hoy.toISOString().split('T')[0];
+const entryHoy = entries.find((e) => e.slug === hoyStr) ?? entries[entries.length - 1];
+
+const totalDias = entries.length;
+
+const mesesSet = new Set<string>();
+for (const e of entries) mesesSet.add(e.slug.slice(0, 7));
+const totalMeses = mesesSet.size;
+
+let domingos = 0;
+for (const e of entries) {
+  const [y, m, d] = e.slug.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  if (date.getDay() === 0) domingos++;
+}
+--->
+<BaseLayout title={title} description={description}>
+  {/* HERO */}
+  <section class="relative overflow-hidden bg-gradient-to-b from-brand-50 to-cream">
+    <div class="container-prose py-16 sm:py-24 text-center">
+      <p class="badge-liturgia">Evangelio del día</p>
+      <h1 class="mt-6 font-serif text-5xl sm:text-7xl text-brand-700 font-bold tracking-tight">
+        Evangelio para Hoy
+      </h1>
+      <p class="mt-4 font-serif text-2xl sm:text-3xl text-brand-600 italic">
+        Con el Padre Jose Miguel
+      </p>
+      <p class="mt-8 text-lg sm:text-xl text-brand-800 max-w-2xl mx-auto leading-relaxed">
+        Las lecturas completas del día, con reflexión pastoral, audio narrado e ilustraciones bíblicas.
+        La Palabra de Dios cada día en tu hogar.
+      </p>
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
+        <a href="/hoy/" class="btn-primary">
+          Evangelio de hoy
+        </a>
+        <a
+          href="https://www.youtube.com/@evangelioparahoy7"
+          target="_blank"
+          rel="noopener"
+          class="btn-ghost"
+        >
+          Canal de YouTube
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {/* EVANGELIO DE HOY — preview card */}
+  {entryHoy && (
+    <section class="py-16">
+      <div class="container-wide">
+        <div class="text-center mb-10">
+          <h2 class="font-serif text-3xl sm:text-4xl text-brand-800 font-bold">El evangelio de hoy</h2>
+          <p class="mt-2 font-serif text-xl text-brand-600 italic">
+            {formatFechaLegible(entryHoy.slug)} — {getDiaSemana(entryHoy.slug)}
+          </p>
+        </div>
+        <div class="max-w-2xl mx-auto bg-brand-50 border border-brand-200 rounded-2xl overflow-hidden shadow-sm">
+          {entryHoy.data.imagen && (
+            <a href="/hoy/" class="block">
+              <img
+                src={entryHoy.data.imagen}
+                alt={`Evangelio de hoy — ${entryHoy.data.evangelio.referencia}`}
+                width={1600}
+                height={900}
+                loading="eager"
+                class="w-full aspect-video object-cover"
+              />
+            </a>
+          )}
+          <div class="p-8">
+            <p class="badge-liturgia">{entryHoy.data.titulo_dia}</p>
+            <h3 class="mt-4 font-serif text-2xl text-brand-800 font-bold">
+              {entryHoy.data.evangelio.referencia}
+            </h3>
+            <p class="mt-2 text-brand-600 leading-relaxed line-clamp-3">
+              {entryHoy.data.reflexion.slice(0, 200)}…
+            </p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <a href="/hoy/" class="btn-primary text-base">Leer evangelio de hoy →</a>
+              {entryHoy.data.audio_reflexion && (
+                <span class="inline-flex items-center gap-1.5 text-brand-600 font-serif text-lg">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                  Audio disponible
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  {/* QUE ENCONTRARAS */}
+  <section class="py-16 bg-brand-50">
+    <div class="container-wide">
+      <h2 class="font-serif text-3xl sm:text-4xl text-brand-800 font-bold text-center mb-12">
+        Qué encontrarás cada día
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="bg-cream rounded-2xl p-8 border border-brand-200">
+          <div class="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-brand-700"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <h3 class="font-serif text-xl text-brand-800 font-bold mb-2">Lecturas completas</h3>
+          <p class="text-brand-600 leading-relaxed">
+            Primera lectura, salmo responsorial, aclamación, evangelio y, los domingos,
+            segunda lectura — según el calendario litúrgico católico.
+          </p>
+        </div>
+        <div class="bg-cream rounded-2xl p-8 border border-brand-200">
+          <div class="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-brand-700"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          </div>
+          <h3 class="font-serif text-xl text-brand-800 font-bold mb-2">Audio narrado</h3>
+          <p class="text-brand-600 leading-relaxed">
+            Reflexión del Padre Jose Miguel en audio, con reproductor integrado para escuchar
+            a cualquier hora y velocidad ajustable (1x a 2x).
+          </p>
+        </div>
+        <div class="bg-cream rounded-2xl p-8 border border-brand-200">
+          <div class="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-brand-700"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          </div>
+          <h3 class="font-serif text-xl text-brand-800 font-bold mb-2">Video del evangelio</h3>
+          <p class="text-brand-600 leading-relaxed">
+            Karaoke palabra por palabra del evangelio del día en nuestro canal de YouTube,
+            incrustado directo en cada página.
+          </p>
+        </div>
+        <div class="bg-cream rounded-2xl p-8 border border-brand-200">
+          <div class="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-brand-700"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <h3 class="font-serif text-xl text-brand-800 font-bold mb-2">Ilustraciones bíblicas</h3>
+          <p class="text-brand-600 leading-relaxed">
+            Imágenes originales para cada evangelio y primera lectura, optimizadas para
+            todos los dispositivos.
+          </p>
+        </div>
+        <div class="bg-cream rounded-2xl p-8 border border-brand-200">
+          <div class="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-brand-700"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3 class="font-serif text-xl text-brand-800 font-bold mb-2">Reflexión del Padre</h3>
+          <p class="text-brand-600 leading-relaxed">
+            Cada día, una reflexión pastoral cercana que habla al corazón de la vida cotidiana,
+            escrita y firmada por el Padre Jose Miguel.
+          </p>
+        </div>
+        <div class="bg-cream rounded-2xl p-8 border border-brand-200">
+          <div class="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-brand-700"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/></svg>
+          </div>
+          <h3 class="font-serif text-xl text-brand-800 font-bold mb-2">Canal de WhatsApp</h3>
+          <p class="text-brand-600 leading-relaxed">
+            Recibe el evangelio y la reflexión de cada día directamente en tu WhatsApp.
+            Únete al canal y no te pierdas ni un día.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ULTIMOS EVANGELIOS */}
+  <section class="py-16">
+    <div class="container-prose">
+      <div class="flex items-baseline justify-between mb-8">
+        <h2 class="font-serif text-3xl text-brand-800 font-bold">Últimos evangelios publicados</h2>
+        <a href="/calendario/" class="text-brand-600 hover:text-accent font-serif text-lg">Ver todos →</a>
+      </div>
+      <ul class="space-y-3">
+        {ultimos5.map((entry) => (
+          <li>
+            <a
+              href={`/evangelio/${entry.slug}/`}
+              class="flex items-baseline gap-4 p-4 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors group"
+            >
+              <span class="font-serif text-lg text-brand-700 font-bold flex-shrink-0 tabular-nums">
+                {formatFechaCorta(entry.slug)}
+              </span>
+              <span class="flex-1">
+                <span class="text-brand-800 group-hover:text-accent transition-colors font-serif text-lg">
+                  {entry.data.titulo_dia || 'Evangelio del día'}
+                </span>
+                {entry.data.evangelio?.referencia && (
+                  <span class="block text-sm text-brand-500 italic mt-0.5">
+                    {entry.data.evangelio.referencia}
+                  </span>
+                )}
+              </span>
+              <span class="text-brand-400 group-hover:text-accent transition-colors">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  {/* STATS */}
+  <section class="py-12 bg-brand-700 text-cream">
+    <div class="container-wide">
+      <div class="grid grid-cols-3 gap-8 text-center">
+        <div>
+          <p class="font-serif text-4xl sm:text-5xl font-bold">{totalDias}</p>
+          <p class="mt-1 text-brand-200 text-sm uppercase tracking-wider">Días de evangelio</p>
+        </div>
+        <div>
+          <p class="font-serif text-4xl sm:text-5xl font-bold">{totalMeses}</p>
+          <p class="mt-1 text-brand-200 text-sm uppercase tracking-wider">Meses publicados</p>
+        </div>
+        <div>
+          <p class="font-serif text-4xl sm:text-5xl font-bold">{domingos}</p>
+          <p class="mt-1 text-brand-200 text-sm uppercase tracking-wider">Domingos</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* SOBRE */}
+  <section class="py-16">
+    <div class="container-prose text-center">
+      <h2 class="font-serif text-3xl sm:text-4xl text-brand-800 font-bold">¿Quién es el Padre Jose Miguel?</h2>
+      <p class="mt-6 font-serif text-xl text-brand-700 leading-relaxed max-w-2xl mx-auto">
+        Sacerdote católico dedicado a evangelizar con la Palabra de cada día. A través de
+        Evangelio para Hoy comparte reflexiones del Evangelio en texto, audio y video,
+        acompañando a los fieles de México y Latinoamérica en su camino de fe.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
+        <a href="/autor/padre-jose-miguel/" class="btn-primary">Conocer al Padre</a>
+        <a href="/sobre/" class="btn-ghost">Sobre el proyecto</a>
+      </div>
+    </div>
+  </section>
+
+  {/* CTA WHATSAPP */}
+  <section class="pb-16">
+    <div class="container-prose">
+      <WhatsAppCTA variant="banner" />
+    </div>
+  </section>
+</BaseLayout>

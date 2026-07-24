@@ -1,0 +1,33 @@
+---
+import WhatsAppCTA from './WhatsAppCTA.astro';
+
+const year = new Date().getFullYear();
+---
+<footer class="mt-16 border-t border-brand-200 bg-white">
+  <div class="mx-auto max-w-3xl px-6 sm:px-8 py-10 text-center">
+    <p class="font-serif text-2xl text-brand-700">Evangelio para Hoy</p>
+    <p class="mt-2 text-sm text-brand-600">Con el Padre Jose Miguel</p>
+
+    <div class="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-brand-700">
+      <a href="/hoy/" class="hover:text-accent transition-colors">Evangelio de hoy</a>
+      <a href="/calendario/" class="hover:text-accent transition-colors">Calendario</a>
+      <a href="/autor/padre-jose-miguel/" class="hover:text-accent transition-colors">El Padre Jose Miguel</a>
+      <a href="/sobre/" class="hover:text-accent transition-colors">Sobre el sitio</a>
+      <a href="/rss.xml" class="hover:text-accent transition-colors">RSS</a>
+      <a
+        href="https://www.youtube.com/@evangelioparahoy7"
+        target="_blank"
+        rel="noopener"
+        class="hover:text-accent transition-colors"
+      >YouTube</a>
+    </nav>
+
+    <div class="mt-8">
+      <WhatsAppCTA variant="inline" />
+    </div>
+
+    <p class="mt-8 text-xs text-brand-500">
+      &copy; {year} Evangelio para Hoy. Con el Padre Jose Miguel.
+    </p>
+  </div>
+</footer>

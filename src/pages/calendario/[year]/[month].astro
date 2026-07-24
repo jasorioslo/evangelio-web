@@ -1,0 +1,210 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import { getCollection } from 'astro:content';
+import {
+  MESES_ES,
+  MESES_ES_CAPITAL,
+  DIAS_SEMANA_CAPITAL,
+  getMonthFromSlug,
+  formatFechaCorta,
+  isDomingo,
+} from '../../../utils/liturgia';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('evangelio');
+
+  const mesesDisponibles = new Map<string, string[]>();
+  for (const entry of entries) {
+    const [year, month] = entry.slug.split('-');
+    const key = `${year}/${MESES_ES[parseInt(month) - 1]}`;
+    if (!mesesDisponibles.has(key)) mesesDisponibles.set(key, []);
+    mesesDisponibles.get(key)!.push(entry.slug);
+  }
+
+  return Array.from(mesesDisponibles.entries()).map(([key, slugs]) => {
+    const [yearStr, monthSlug] = key.split('/');
+    const monthNum = getMonthFromSlug(monthSlug);
+    return {
+      params: { year: yearStr, month: monthSlug },
+      props: {
+        slugs: slugs.sort(),
+        year: yearStr,
+        monthNum: monthNum!,
+        monthSlug,
+      },
+    };
+  });
+}
+
+const { slugs, year, monthNum, monthSlug } = Astro.props;
+
+const diasSemanaAbbr = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+const entries = await getCollection('evangelio');
+const slugSet = new Set(slugs);
+
+const title = `${MESES_ES_CAPITAL[monthNum - 1]} ${year} — Calendario | Evangelio para Hoy`;
+const description = `Todos los evangelios de ${MESES_ES_CAPITAL[monthNum - 1]} ${year}. Lecturas, salmo, evangelio y reflexión del Padre Jose Miguel.`;
+const canonical = `https://evangelioparahoy.com/calendario/${year}/${monthSlug}/`;
+
+const breadcrumbJSON = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://evangelioparahoy.com/' },
+    { '@type': 'ListItem', position: 2, name: 'Calendario', item: 'https://evangelioparahoy.com/calendario/' },
+    { '@type': 'ListItem', position: 3, name: `${MESES_ES_CAPITAL[monthNum - 1]} ${year}`, item: canonical },
+  ],
+};
+
+// Calcular mes anterior y siguiente
+const allMonths = Array.from(new Set(entries.map((e) => e.slug.slice(0, 7)))).sort();
+const currentKey = `${year}-${String(monthNum).padStart(2, '0')}`;
+const currentIdx = allMonths.indexOf(currentKey);
+const prevKey = currentIdx > 0 ? allMonths[currentIdx - 1] : null;
+const nextKey = currentIdx >= 0 && currentIdx < allMonths.length - 1 ? allMonths[currentIdx + 1] : null;
+
+function keyToUrl(key: string): { year: string; month: string } | null {
+  const [y, m] = key.split('-');
+  const mNum = parseInt(m);
+  return { year: y, month: MESES_ES[mNum - 1] };
+}
+
+const prevUrl = prevKey ? keyToUrl(prevKey) : null;
+const nextUrl = nextKey ? keyToUrl(nextKey) : null;
+
+// Build calendar grid
+const firstDay = new Date(parseInt(year), monthNum - 1, 1);
+const daysInMonth = new Date(parseInt(year), monthNum, 0).getDate();
+const startWeekday = firstDay.getDay();
+
+const calendarCells: { day: number | null; iso: string | null; slug: string | null }[] = [];
+for (let i = 0; i < startWeekday; i++) {
+  calendarCells.push({ day: null, iso: null, slug: null });
+}
+for (let d = 1; d <= daysInMonth; d++) {
+  const iso = `${year}-${String(monthNum).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  calendarCells.push({ day: d, iso, slug: slugSet.has(iso) ? iso : null });
+}
+
+// Fill last week
+const remaining = 7 - (calendarCells.length % 7);
+if (remaining < 7) {
+  for (let i = 0; i < remaining; i++) {
+    calendarCells.push({ day: null, iso: null, slug: null });
+  }
+}
+
+// Get entry data for each slug
+const entryMap = new Map<string, { titulo_dia: string; evangelio_ref: string }>();
+for (const entry of entries) {
+  if (slugSet.has(entry.slug)) {
+    entryMap.set(entry.slug, {
+      titulo_dia: entry.data.titulo_dia || '',
+      evangelio_ref: entry.data.evangelio?.referencia || '',
+    });
+  }
+}
+---
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  jsonLd={breadcrumbJSON}
+>
+  <section class="py-12">
+    <div class="container-prose">
+      <Breadcrumbs
+        items={[
+          { name: 'Inicio', href: '/' },
+          { name: 'Calendario', href: '/calendario/' },
+          { name: `${MESES_ES_CAPITAL[monthNum - 1]} ${year}`, href: `/calendario/${year}/${monthSlug}/` },
+        ]}
+      />
+
+      <header class="mb-10">
+        <h1 class="font-serif text-4xl sm:text-5xl text-brand-700 font-bold">
+          {MESES_ES_CAPITAL[monthNum - 1]} {year}
+        </h1>
+        <p class="mt-2 text-brand-600 italic">{slugs.length} días publicados</p>
+      </header>
+
+      {/* Nav mes anterior / siguiente */}
+      <nav class="flex items-center justify-between mb-8" aria-label="Navegación de meses">
+        {prevUrl ? (
+          <a href={`/calendario/${prevUrl.year}/${prevUrl.month}/`} class="btn-ghost text-base">
+            ← {MESES_ES_CAPITAL[getMonthFromSlug(prevUrl.month)! - 1]} {prevUrl.year}
+          </a>
+        ) : (
+          <span class="text-brand-400 italic">Sin mes anterior</span>
+        )}
+        {nextUrl ? (
+          <a href={`/calendario/${nextUrl.year}/${nextUrl.month}/`} class="btn-ghost text-base text-right">
+            {MESES_ES_CAPITAL[getMonthFromSlug(nextUrl.month)! - 1]} {nextUrl.year} →
+          </a>
+        ) : (
+          <span class="text-brand-400 italic text-right">Sin mes siguiente</span>
+        )}
+      </nav>
+
+      {/* Grid calendario */}
+      <div class="grid grid-cols-7 gap-1 sm:gap-2">
+        {diasSemanaAbbr.map((d) => (
+          <div class="text-center text-xs font-sans font-bold text-brand-500 uppercase pb-2">
+            {d}
+          </div>
+        ))}
+        {calendarCells.map((cell) => (
+          <div
+            class={`min-h-[3rem] sm:min-h-[5rem] p-1 sm:p-2 rounded-lg text-sm ${
+              cell.slug
+                ? isDomingo(cell.iso!)
+                  ? 'bg-accent/10 border border-accent/30'
+                  : 'bg-brand-50 border border-brand-200'
+                : 'bg-transparent'
+            }`}
+          >
+            {cell.day && (
+              <>
+                <div class={`font-bold ${cell.slug ? 'text-brand-700' : 'text-brand-300'}`}>
+                  {cell.day}
+                </div>
+                {cell.slug && (
+                  <a
+                    href={`/evangelio/${cell.slug}/`}
+                    class="block mt-1 text-xs text-brand-600 hover:text-accent hover:underline"
+                  >
+                    {entryMap.get(cell.slug)?.titulo_dia || 'Evangelio'}
+                  </a>
+                )}
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Listado completo */}
+      <section class="mt-12">
+        <h2 class="font-serif text-2xl text-brand-700 mb-4">Listado de días</h2>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {slugs.sort().map((slug) => (
+            <li>
+              <a
+                href={`/evangelio/${slug}/`}
+                class="flex items-baseline gap-3 p-3 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors"
+              >
+                <span class="font-serif text-lg text-brand-700 font-bold tabular-nums">
+                  {formatFechaCorta(slug)}
+                </span>
+                <span class="text-sm text-brand-600">
+                  {entryMap.get(slug)?.titulo_dia || 'Evangelio del día'}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  </section>
+</BaseLayout>

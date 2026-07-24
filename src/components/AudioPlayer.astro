@@ -1,0 +1,165 @@
+---
+interface Props {
+  src: string;
+  duration?: string;
+  title?: string;
+}
+
+const { src, duration, title = 'Reflexión del Padre Jose Miguel' } = Astro.props;
+
+const durationLabel = duration
+  ? duration
+      .replace(/^PT/, '')
+      .replace(/(\d+)H/, '$1 h ')
+      .replace(/(\d+)M/, '$1 min ')
+      .replace(/(\d+)S/, '$1 s')
+      .trim()
+  : null;
+---
+<div class="audio-player-box">
+  <div class="flex items-center gap-4">
+    <button
+      type="button"
+      class="audio-play-btn"
+      aria-label="Reproducir reflexión"
+      data-audio-src={src}
+    >
+      <svg class="icon-play" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M8 5v14l11-7z" />
+      </svg>
+      <svg class="icon-pause hidden" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+      </svg>
+    </button>
+    <div class="flex-1">
+      <p class="font-serif text-lg text-brand-800 font-bold">{title}</p>
+      {durationLabel && (
+        <meta itemprop="duration" content={duration} />
+        <p class="text-xs text-brand-500 mt-1">Duración: {durationLabel}</p>
+      )}
+    </div>
+  </div>
+  <div class="mt-4 flex items-center gap-3">
+    <span class="audio-time text-xs text-brand-500 tabular-nums" data-time-current>0:00</span>
+    <div class="audio-progress-track flex-1" data-progress-track>
+      <div class="audio-progress-bar" data-progress-bar></div>
+    </div>
+    <span class="audio-time text-xs text-brand-500 tabular-nums" data-time-duration>0:00</span>
+  </div>
+  <div class="mt-3 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <button type="button" class="audio-speed-btn" data-speed="1" aria-label="Cambiar velocidad">1x</button>
+    </div>
+    <a href={src} download class="text-sm text-brand-600 hover:text-accent transition-colors">
+      Descargar MP3
+    </a>
+    <a
+      href="https://whatsapp.com/channel/0029Vb8gvlCInlqSAi9Wjo2U"
+      target="_blank"
+      rel="noopener"
+      class="text-sm text-brand-600 hover:text-accent transition-colors"
+    >
+      Únete al canal de WhatsApp
+    </a>
+  </div>
+  <audio data-audio preload="metadata" class="hidden">
+    <source src={src} type="audio/mpeg" />
+    Tu navegador no soporta audio HTML5.
+  </audio>
+</div>
+
+<style>
+  .audio-player-box {
+    @apply bg-white rounded-2xl p-8 border border-brand-200;
+  }
+  .audio-play-btn {
+    @apply flex-shrink-0 w-14 h-14 rounded-full bg-brand-600 text-cream flex items-center justify-center hover:bg-brand-700 transition-colors;
+  }
+  .audio-progress-track {
+    @apply h-2 bg-brand-200 rounded-full cursor-pointer relative;
+  }
+  .audio-progress-bar {
+    @apply h-full bg-brand-600 rounded-full transition-all duration-150;
+    width: 0%;
+  }
+  .audio-speed-btn {
+    @apply text-sm border border-brand-300 text-brand-700 px-3 py-1 rounded-full hover:bg-brand-100 transition-colors cursor-pointer;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.audio-player-box').forEach((box) => {
+      const audio = box.querySelector('[data-audio]') as HTMLAudioElement | null;
+      const playBtn = box.querySelector('.audio-play-btn') as HTMLButtonElement | null;
+      const iconPlay = box.querySelector('.icon-play');
+      const iconPause = box.querySelector('.icon-pause');
+      const progressBar = box.querySelector('[data-progress-bar]') as HTMLElement | null;
+      const progressTrack = box.querySelector('[data-progress-track]') as HTMLElement | null;
+      const timeCurrent = box.querySelector('[data-time-current]');
+      const timeDuration = box.querySelector('[data-time-duration]');
+      const speedBtn = box.querySelector('[data-speed]') as HTMLButtonElement | null;
+
+      if (!audio || !playBtn) return;
+
+      playBtn.addEventListener('click', () => {
+        if (audio.paused) {
+          audio.play();
+        } else {
+          audio.pause();
+        }
+      });
+
+      audio.addEventListener('play', () => {
+        iconPlay?.classList.add('hidden');
+        iconPause?.classList.remove('hidden');
+      });
+      audio.addEventListener('pause', () => {
+        iconPlay?.classList.remove('hidden');
+        iconPause?.classList.add('hidden');
+      });
+
+      audio.addEventListener('loadedmetadata', () => {
+        if (timeDuration) timeDuration.textContent = formatTime(audio.duration);
+      });
+
+      audio.addEventListener('timeupdate', () => {
+        const pct = (audio.currentTime / audio.duration) * 100;
+        if (progressBar) progressBar.style.width = `${pct}%`;
+        if (timeCurrent) timeCurrent.textContent = formatTime(audio.currentTime);
+      });
+
+      audio.addEventListener('ended', () => {
+        iconPlay?.classList.remove('hidden');
+        iconPause?.classList.add('hidden');
+        if (progressBar) progressBar.style.width = '0%';
+        if (timeCurrent) timeCurrent.textContent = '0:00';
+      });
+
+      if (progressTrack) {
+        progressTrack.addEventListener('click', (e) => {
+          const rect = progressTrack.getBoundingClientRect();
+          const pct = (e.clientX - rect.left) / rect.width;
+          audio.currentTime = pct * audio.duration;
+        });
+      }
+
+      if (speedBtn) {
+        const speeds = [1, 1.25, 1.5, 2];
+        let speedIdx = 0;
+        speedBtn.addEventListener('click', () => {
+          speedIdx = (speedIdx + 1) % speeds.length;
+          audio.playbackRate = speeds[speedIdx];
+          speedBtn.textContent = `${speeds[speedIdx]}x`;
+        });
+      }
+
+      function formatTime(sec: number): string {
+        if (!isFinite(sec)) return '0:00';
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m}:${s.toString().padStart(2, '0')}`;
+      }
+    });
+  });
+</script>

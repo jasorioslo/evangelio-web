@@ -1,0 +1,65 @@
+---
+interface Props {
+  youtubeId: string;
+  title?: string;
+}
+
+const { youtubeId, title = 'Evangelio del día — Evangelio para Hoy' } = Astro.props;
+const thumb = `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
+---
+<div class="lite-youtube-embed" data-youtube-id={youtubeId} data-title={title}>
+  <button type="button" class="lite-youtube-btn" aria-label={`Reproducir video: ${title}`}>
+    <img
+      src={thumb}
+      alt={title}
+      width="480"
+      height="270"
+      loading="lazy"
+      class="w-full h-full object-cover"
+    />
+    <span class="lite-youtube-play-overlay" aria-hidden="true">
+      <svg width="68" height="48" viewBox="0 0 68 48" fill="none">
+        <path d="M66.5 7.5c-.8-3-3.2-5.4-6.2-6.2C55 0 34 0 34 0S13 0 7.7 1.3C4.7 2.1 2.3 4.5 1.5 7.5 0 13 0 24 0 24s0 11 1.5 16.5c.8 3 3.2 5.4 6.2 6.2C13 48 34 48 34 48s21 0 26.3-1.3c3-.8 5.4-3.2 6.2-6.2C68 35 68 24 68 24s0-11-1.5-16.5z" fill="#f00" />
+        <path d="M45 24l-17-10v20l17-10z" fill="#fff" />
+      </svg>
+    </span>
+  </button>
+</div>
+
+<style>
+  .lite-youtube-embed {
+    @apply relative aspect-video rounded-xl overflow-hidden shadow-xl bg-black;
+  }
+  .lite-youtube-btn {
+    @apply w-full h-full block cursor-pointer relative border-0 bg-transparent p-0;
+  }
+  .lite-youtube-play-overlay {
+    @apply absolute inset-0 flex items-center justify-center pointer-events-none;
+    background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.4));
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.lite-youtube-embed').forEach((el) => {
+      const btn = el.querySelector('.lite-youtube-btn');
+      const id = el.getAttribute('data-youtube-id');
+      const title = el.getAttribute('data-title') ?? 'Video';
+      if (!btn || !id) return;
+
+      btn.addEventListener('click', () => {
+        const iframe = document.createElement('iframe');
+        iframe.setAttribute('width', '560');
+        iframe.setAttribute('height', '315');
+        iframe.setAttribute('src', `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`);
+        iframe.setAttribute('title', title);
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.style.cssText = 'width:100%;height:100%;position:absolute;inset:0;';
+        el.innerHTML = '';
+        el.appendChild(iframe);
+      });
+    });
+  });
+</script>
