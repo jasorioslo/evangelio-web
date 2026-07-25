@@ -1,12 +1,12 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Breadcrumbs from '../components/Breadcrumbs.astro';
-import ShareButtons from '../components/ShareButtons.astro';
-import AudioPlayer from '../components/AudioPlayer.astro';
-import YouTubeEmbed from '../components/YouTubeEmbed.astro';
-import WhatsAppCTA from '../components/WhatsAppCTA.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ShareButtons from '../../components/ShareButtons.astro';
+import AudioPlayer from '../../components/AudioPlayer.astro';
+import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
+import WhatsAppCTA from '../../components/WhatsAppCTA.astro';
 import { getCollection } from 'astro:content';
-import { formatFechaLegible, formatFechaLegibleDe } from '../utils/liturgia';
+import { formatFechaLegible, formatFechaLegibleDe } from '../../utils/liturgia';
 
 const hoy = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
 const hoyStr = hoy.toISOString().split('T')[0];
@@ -28,7 +28,7 @@ const iso = data.fecha;
 const fechaLegible = formatFechaLegible(iso);
 
 const titleSEO = `Evangelio de hoy — ${fechaLegible} | Evangelio para Hoy`;
-const canonical = 'https://evangelioparahoy.com/hoy/';
+const canonical = 'https://evangelioparahoy.com/evangelio/';
 const description = `Lecturas, salmo y evangelio de hoy ${fechaLegible}. Reflexión del Padre Jose Miguel con audio y video.`;
 
 const breadcrumbJSON = {
@@ -92,7 +92,7 @@ const allJSON = [
       <Breadcrumbs
         items={[
           { name: 'Inicio', href: '/' },
-          { name: 'Evangelio de hoy', href: '/hoy/' },
+          { name: 'Evangelio de hoy', href: '/evangelio/' },
         ]}
       />
 

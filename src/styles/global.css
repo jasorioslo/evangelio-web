@@ -63,7 +63,7 @@
   }
 }
 
-/* Estilos del contenido evangelio (compartidos entre /hoy/ y /evangelio/[fecha]/) */
+/* Estilos del contenido evangelio (compartidos entre /evangelio/ y /evangelio/[fecha]/) */
 .evangelio-prose {
   @apply text-brand-900 leading-loose;
   max-width: 42rem;
