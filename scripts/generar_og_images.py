@@ -87,13 +87,13 @@ def generar_og_image(
 
     # Overlay oscuro gradient (mas oscuro abajo)
     overlay = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
-    draw = ImageDraw(overlay)
+    draw = ImageDraw.Draw(overlay)
     for y in range(target_h):
         alpha = int(180 * (y / target_h))
         draw.line([(0, y), (target_w, y)], fill=(0, 0, 0, alpha))
     og = Image.alpha_composite(og.convert("RGBA"), overlay).convert("RGB")
 
-    draw = ImageDraw(og)
+    draw = ImageDraw.Draw(og)
 
     # Texto
     fecha_legible = _fecha_legible(fecha_iso)

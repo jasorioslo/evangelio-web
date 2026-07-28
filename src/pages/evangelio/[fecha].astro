@@ -5,6 +5,7 @@ import ShareButtons from '../../components/ShareButtons.astro';
 import AudioPlayer from '../../components/AudioPlayer.astro';
 import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import WhatsAppCTA from '../../components/WhatsAppCTA.astro';
+import ImagenEvangelio from '../../components/ImagenEvangelio.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { formatFechaLegible, formatFechaLegibleDe, formatFechaCorta } from '../../utils/liturgia';
 
@@ -111,7 +112,7 @@ const allJSON = [
   description={data.description}
   canonical={canonical}
   keywords={data.keywords ?? []}
-  ogImage={data.imagen ?? undefined}
+  ogImage={`/img/dias/${iso}/og-image.webp`}
   jsonLd={allJSON}
 >
   <article class="py-8 sm:py-16">
@@ -137,19 +138,16 @@ const allJSON = [
     </div>
 
     {data.imagen && (
-      <figure class="container-prose mb-16">
-        <img
+      <div class="container-prose mb-16">
+        <ImagenEvangelio
           src={data.imagen}
           alt={`Evangelio del ${fechaLegible} — ${data.evangelio.referencia} (ilustración)`}
-          width={1600}
-          height={900}
           loading="eager"
-          class="w-full rounded-xl shadow-xl"
         />
-        <figcaption class="text-center text-sm text-brand-500 mt-3 italic">
+        <p class="text-center text-sm text-brand-500 mt-3 italic">
           {data.evangelio.referencia}
-        </figcaption>
-      </figure>
+        </p>
+      </div>
     )}
 
     <div class="evangelio-prose">
