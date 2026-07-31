@@ -8,6 +8,7 @@ import WhatsAppCTA from '../../components/WhatsAppCTA.astro';
 import ImagenEvangelio from '../../components/ImagenEvangelio.astro';
 import { getCollection } from 'astro:content';
 import { formatFechaLegible, formatFechaLegibleDe } from '../../utils/liturgia';
+import youtubeVideos from '../../data/youtube-videos.json';
 
 const hoy = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
 const hoyStr = hoy.toISOString().split('T')[0];
@@ -27,6 +28,7 @@ const { Content } = await entry.render();
 
 const iso = data.fecha;
 const fechaLegible = formatFechaLegible(iso);
+const youtubeId = data.youtube_id || (youtubeVideos as Record<string, string>)[iso] || '';
 
 const titleSEO = `Evangelio de hoy — ${fechaLegible} | Evangelio para Hoy`;
 const canonical = 'https://evangelioparahoy.com/evangelio/';
@@ -74,10 +76,24 @@ const audioJSON = data.audio_reflexion
     }
   : null;
 
+const videoJSON = youtubeId
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'VideoObject',
+      contentUrl: `https://www.youtube.com/watch?v=${youtubeId}`,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${youtubeId}`,
+      thumbnailUrl: `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`,
+      uploadDate: iso,
+      name: titleSEO,
+      description,
+    }
+  : null;
+
 const allJSON = [
   breadcrumbJSON,
   articleJSON,
   ...(audioJSON ? [audioJSON] : []),
+  ...(videoJSON ? [videoJSON] : []),
 ];
 ---
 <BaseLayout
@@ -160,10 +176,10 @@ const allJSON = [
       </script>
     )}
 
-    {data.youtube_id && (
+    {youtubeId && (
       <section class="container-prose mt-16">
         <h2 class="font-serif text-3xl text-brand-800 font-bold mb-6">Video del evangelio</h2>
-        <YouTubeEmbed youtubeId={data.youtube_id} title={`Evangelio de hoy ${fechaLegible}`} />
+        <YouTubeEmbed youtubeId={youtubeId} title={`Evangelio de hoy ${fechaLegible}`} />
       </section>
     )}
 
