@@ -3,12 +3,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import ShareButtons from '../../components/ShareButtons.astro';
 import AudioPlayer from '../../components/AudioPlayer.astro';
-import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import WhatsAppCTA from '../../components/WhatsAppCTA.astro';
 import ImagenEvangelio from '../../components/ImagenEvangelio.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { formatFechaLegible, formatFechaLegibleDe, formatFechaCorta } from '../../utils/liturgia';
-import youtubeVideos from '../../data/youtube-videos.json';
 
 export async function getStaticPaths() {
   const entries = await getCollection('evangelio');
@@ -37,7 +35,6 @@ const { Content } = await entry.render();
 const iso = data.fecha;
 const fechaLegible = formatFechaLegible(iso);
 const fechaLegibleDe = formatFechaLegibleDe(iso);
-const youtubeId = data.youtube_id || (youtubeVideos as Record<string, string>)[iso] || '';
 
 const canonical = `https://evangelioparahoy.com/evangelio/${iso}/`;
 
@@ -89,24 +86,10 @@ const audioJSON = data.audio_reflexion
     }
   : null;
 
-const videoJSON = youtubeId
-  ? {
-      '@context': 'https://schema.org',
-      '@type': 'VideoObject',
-      contentUrl: `https://www.youtube.com/watch?v=${youtubeId}`,
-      embedUrl: `https://www.youtube-nocookie.com/embed/${youtubeId}`,
-      thumbnailUrl: `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`,
-      uploadDate: iso,
-      name: data.title,
-      description: data.description,
-    }
-  : null;
-
 const allJSON = [
   breadcrumbJSON,
   articleJSON,
   ...(audioJSON ? [audioJSON] : []),
-  ...(videoJSON ? [videoJSON] : []),
 ];
 ---
 <BaseLayout
@@ -185,13 +168,6 @@ const allJSON = [
           }
         })();
       </script>
-    )}
-
-    {youtubeId && (
-      <section class="container-prose mt-16">
-        <h2 class="font-serif text-3xl text-brand-800 font-bold mb-6">Video del evangelio</h2>
-        <YouTubeEmbed youtubeId={youtubeId} title={`Evangelio del ${fechaLegible}`} />
-      </section>
     )}
 
     {/* WhatsApp CTA */}

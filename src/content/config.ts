@@ -28,7 +28,6 @@ const evangelio = defineCollection({
     imagen_segunda: z.string().optional(),
     audio_reflexion: z.string().optional(), // /audio/YYYY-MM-DD-reflexion.mp3
     audio_reflexion_duracion: z.string().optional(), // ISO 8601 "PT11M15S"
-    youtube_id: z.string().optional(),
 
     // Primera lectura
     primera_lectura: z.object({

@@ -274,7 +274,6 @@ def _build_frontmatter(datos: dict, iso: str, autor_slug: str = "padre-jose-migu
     if imagen_segunda:
         fm.append(f"imagen_segunda: {imagen_segunda}")
     fm.append(f"audio_reflexion: {audio_reflexion}")
-    fm.append("youtube_id: ''")  # rellenar manualmente al subir
     fm.append("primera_lectura:")
     fm.append(f'  referencia: "{_yaml_escape(pl.get("referencia", ""))}"')
     fm.append("  texto: |")

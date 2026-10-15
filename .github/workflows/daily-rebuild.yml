@@ -18,11 +18,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Fetch YouTube video IDs from channel RSS
-        run: python3 scripts/fetch_youtube_ids.py
-        continue-on-error: true
-
-      - name: Commit (with or without YouTube updates)
+      - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
